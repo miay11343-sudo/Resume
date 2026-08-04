@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快捷鍵工具助手 - Excel Helper Architecture</title>
+    <!-- 使用 Tailwind CSS 快速建構 UI 層 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(229, 231, 235, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-900">
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- 標題區域 -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">電腦快捷鍵彙整助手</h1>
+            <p class="text-slate-500">基於 Pipeline 架構開發的純前端工具</p>
+        </header>
+
+        <!-- UI 層: 控制面板 (Input Module) -->
+        <div class="glass-card rounded-xl shadow-sm p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">關鍵字搜尋</label>
+                    <input type="text" id="searchInput" placeholder="搜尋功能、按鍵或說明..." 
+                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">分類過濾</label>
+                    <select id="categoryFilter" class="w-full px-4 py-2 border rounded-lg outline-none cursor-pointer">
+                        <option value="all">所有分類</option>
+                        <option value="基礎編輯">基礎編輯</option>
+                        <option value="系統進階">系統進階</option>
+                        <option value="視窗管理">視窗管理</option>
+                        <option value="虛擬桌面">虛擬桌面</option>
+                        <option value="瀏覽器">瀏覽器</option>
+                    </select>
+                </div>
+                <div class="flex items-end gap-2">
+                    <button id="exportBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+                        匯出 CSV
+                    </button>
+                    <button id="resetBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 px-4 rounded-lg transition">
+                        重置
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- UI 層: 數據預覽表格 (View Module) -->
+        <div class="glass-card rounded-xl shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-100 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-4 text-sm font-semibold text-slate-600">分類</th>
+                            <th class="px-6 py-4 text-sm font-semibold text-slate-600">功能名稱</th>
+                            <th class="px-6 py-4 text-sm font-semibold text-slate-600 text-blue-600">Windows</th>
+                            <th class="px-6 py-4 text-sm font-semibold text-slate-600 text-orange-600">Mac</th>
+                            <th class="px-6 py-4 text-sm font-semibold text-slate-600">應用情境</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable" class="divide-y divide-slate-100">
+                        <!-- 數據將由 JS 動態渲染 -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="noData" class="hidden py-20 text-center text-slate-400">
+                找不到相符的快捷鍵內容
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 1. Data Source (模型層)
+         * 擷取自您提供的 Excel 內容
+         */
+        const SHORTCUT_DATA = [
+            { category: "基礎編輯", function: "複製", win: "Ctrl + C", mac: "Cmd + C", desc: "將選取的內容複製到剪貼簿" },
+            { category: "基礎編輯", function: "貼上", win: "Ctrl + V", mac: "Cmd + V", desc: "貼上剪貼簿中的內容" },
+            { category: "基礎編輯", function: "剪下", win: "Ctrl + X", mac: "Cmd + X", desc: "剪下選取的內容" },
+            { category: "基礎編輯", function: "復原 (Undo)", win: "Ctrl + Z", mac: "Cmd + Z", desc: "撤銷上一步操作" },
+            { category: "基礎編輯", function: "重做 (Redo)", win: "Ctrl + Y", mac: "Cmd + Shift + Z", desc: "取消復原，重新執行上一步" },
+            { category: "基礎編輯", function: "全選", win: "Ctrl + A", mac: "Cmd + A", desc: "選取目前頁面或文件中的所有內容" },
+            { category: "基礎編輯", function: "搜尋 / 尋找", win: "Ctrl + F", mac: "Cmd + F", desc: "開啟搜尋欄尋找關鍵字" },
+            { category: "基礎編輯", function: "儲存", win: "Ctrl + S", mac: "Cmd + S", desc: "儲存當前檔案或文件" },
+            { category: "系統進階", function: "剪貼簿歷史紀錄", win: "Win + V", mac: "(需第三方軟體)", desc: "開啟歷史剪貼簿，可選擇貼上舊紀錄" },
+            { category: "系統進階", function: "螢幕區域截圖", win: "Win + Shift + S", mac: "Cmd + Shift + 4", desc: "自由選取畫面區域進行截圖" },
+            { category: "視窗管理", function: "快速切換應用程式", win: "Alt + Tab", mac: "Cmd + Tab", desc: "快速在已開啟的軟體視窗間切換" },
+            { category: "視窗管理", function: "顯示桌面 / 最小化", win: "Win + D", mac: "Cmd + F3", desc: "瞬間隱藏所有視窗回到桌面" },
+            { category: "視窗管理", function: "視窗分屏 (左/右)", win: "Win + ← / →", mac: "Option + Cmd + ← / →", desc: "將當前視窗自動貼齊螢幕左側或右側" },
+            { category: "視窗管理", function: "視窗最大化/還原", win: "Win + ↑ / ↓", mac: "Control + Cmd + F", desc: "放大或縮小當前視窗" },
+            { category: "視窗管理", function: "快速鎖定螢幕", win: "Win + L", mac: "Control + Cmd + Q", desc: "離開座位時快速鎖定電腦保障隱私" },
+            { category: "視窗管理", function: "開啟檔案總管", win: "Win + E", mac: "Cmd + Option + Space", desc: "快速打開「我的電腦」或檔案資料夾" },
+            { category: "虛擬桌面", function: "建立新虛擬桌面", win: "Win + Ctrl + D", mac: "Control + ↑", desc: "新增一個乾淨的工作桌面" },
+            { category: "虛擬桌面", function: "切換虛擬桌面", win: "Win + Ctrl + ← / →", mac: "Control + ← / →", desc: "在不同虛擬桌面之間快速切換" },
+            { category: "瀏覽器", function: "開啟新分頁", win: "Ctrl + T", mac: "Cmd + T", desc: "在瀏覽器中快速新增一個空白分頁" },
+            { category: "瀏覽器", function: "關閉當前分頁", win: "Ctrl + W", mac: "Cmd + W", desc: "快速關閉目前正在檢視的分頁" },
+            { category: "瀏覽器", function: "恢復剛關閉的分頁", win: "Ctrl + Shift + T", mac: "Cmd + Shift + T", desc: "救援神鍵！重新打開誤關的分頁" },
+            { category: "瀏覽器", function: "切換至下一個分頁", win: "Ctrl + Tab", mac: "Control + Tab", desc: "依序切換到右側的分頁" },
+            { category: "瀏覽器", function: "快速跳至網址列", win: "Ctrl + L 或 F6", mac: "Cmd + L", desc: "游標直接定位到網址列準備輸入" },
+            { category: "瀏覽器", function: "開啟無痕/私密視窗", win: "Ctrl + Shift + N", mac: "Cmd + Shift + N", desc: "以無痕模式開啟新視窗" }
+        ];
+
+        /**
+         * 2. Logic Transformer (邏輯轉換層)
+         * 負責數據的過濾與處理
+         */
+        const Transformer = {
+            filter(data, query, category) {
+                return data.filter(item => {
+                    const matchesQuery = 
+                        item.function.toLowerCase().includes(query.toLowerCase()) ||
+                        item.win.toLowerCase().includes(query.toLowerCase()) ||
+                        item.mac.toLowerCase().includes(query.toLowerCase()) ||
+                        item.desc.toLowerCase().includes(query.toLowerCase());
+                    
+                    const matchesCategory = category === 'all' || item.category === category;
+                    
+                    return matchesQuery && matchesCategory;
+                });
+            },
+            
+            convertToCSV(data) {
+                const headers = ["分類", "功能", "Windows 快捷鍵", "Mac 快捷鍵", "說明"];
+                const rows = data.map(i => [i.category, i.function, i.win, i.mac, i.desc].join(","));
+                return [headers.join(","), ...rows].join("\n");
+            }
+        };
+
+        /**
+         * 3. UI Controller (視圖調度層)
+         * 負責監聽 DOM 事件並更新畫面
+         */
+        const App = {
+            init() {
+                this.cacheDOM();
+                this.bindEvents();
+                this.render(SHORTCUT_DATA);
+            },
+
+            cacheDOM() {
+                this.searchInput = document.getElementById('searchInput');
+                this.categoryFilter = document.getElementById('categoryFilter');
+                this.dataTable = document.getElementById('dataTable');
+                this.exportBtn = document.getElementById('exportBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.noData = document.getElementById('noData');
+            },
+
+            bindEvents() {
+                this.searchInput.addEventListener('input', () => this.handleUpdate());
+                this.categoryFilter.addEventListener('change', () => this.handleUpdate());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.exportBtn.addEventListener('click', () => this.handleExport());
+            },
+
+            handleUpdate() {
+                const query = this.searchInput.value;
+                const category = this.categoryFilter.value;
+                const filteredData = Transformer.filter(SHORTCUT_DATA, query, category);
+                this.render(filteredData);
+            },
+
+            handleExport() {
+                const query = this.searchInput.value;
+                const category = this.categoryFilter.value;
+                const dataToExport = Transformer.filter(SHORTCUT_DATA, query, category);
+                const csvContent = Transformer.convertToCSV(dataToExport);
+                
+                const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute("download", `shortcuts_export.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            },
+
+            reset() {
+                this.searchInput.value = '';
+                this.categoryFilter.value = 'all';
+                this.render(SHORTCUT_DATA);
+            },
+
+            render(data) {
+                this.dataTable.innerHTML = '';
+                
+                if (data.length === 0) {
+                    this.noData.classList.remove('hidden');
+                    return;
+                }
+                this.noData.classList.add('hidden');
+
+                data.forEach(item => {
+                    const row = `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4 text-xs font-medium"><span class="bg-slate-200 px-2 py-1 rounded">${item.category}</span></td>
+                            <td class="px-6 py-4 text-sm font-bold text-slate-700">${item.function}</td>
+                            <td class="px-6 py-4 text-sm font-mono text-blue-600">${item.win}</td>
+                            <td class="px-6 py-4 text-sm font-mono text-orange-600">${item.mac}</td>
+                            <td class="px-6 py-4 text-sm text-slate-500 italic">${item.desc}</td>
+                        </tr>
+                    `;
+                    this.dataTable.insertAdjacentHTML('beforeend', row);
+                });
+            }
+        };
+
+        // 啟動應用程式
+        document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+</body>
+</html>
