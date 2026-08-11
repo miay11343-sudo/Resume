@@ -316,6 +316,54 @@
             color: #666666;
         }
 
+        /* Certifications Grid (6 Boxes Above Toolbar) */
+        .cert-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .cert-card {
+            background-color: #FBFBF9;
+            border: 1.5px dashed var(--color-primary-teal);
+            border-top: 3px solid var(--color-primary-teal);
+            padding: 16px 10px;
+            border-radius: 4px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 95px;
+            transition: all 0.25s ease;
+        }
+
+        .cert-card:hover {
+            border-style: solid;
+            background-color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .cert-icon {
+            width: 22px;
+            height: 22px;
+            color: var(--color-primary-teal);
+            margin-bottom: 6px;
+        }
+
+        .cert-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #222222;
+            margin-bottom: 2px;
+        }
+
+        .cert-sub {
+            font-size: 0.78rem;
+            color: #777777;
+        }
+
         /* Action Toolbar Styles (Responsive 5-Column Grid Layout) */
         .action-toolbar {
             width: 100%;
@@ -397,65 +445,10 @@
                 padding: 0;
             }
 
-            .resume-paper {
-                box-shadow: none;
-                border-radius: 0;
-            }
-
-            .main-content {
-                padding: 20px 16px;
-                gap: 20px;
-            }
-
-            .contact-card {
-                grid-template-columns: 1fr 1fr;
-                padding: 14px;
-                gap: 12px;
-            }
-
-            .timeline {
-                margin-left: 0;
-                padding-left: 16px;
-            }
-
-            .timeline-date {
-                position: static;
-                width: auto;
-                text-align: left;
-                margin-bottom: 2px;
-                color: var(--color-primary-teal);
-            }
-
-            .action-toolbar {
-                padding: 0 16px;
+            .cert-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
             }
 
-            .tool-btn {
-                width: 100%;
-                padding: 10px 10px;
-                font-size: 0.85rem;
-            }
-
-            /* Make print button span full width on 2-column mobile grid */
-            .tool-btn.btn-print {
-                grid-column: span 2;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .contact-card {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Print Optimization */
-        @media print {
-            body {
-                background: none;
-                padding: 0;
-            }
             .resume-paper {
                 box-shadow: none;
                 max-width: 100%;
@@ -640,6 +633,49 @@
                         <div class="edu-date">職涯延伸專業</div>
                         <div class="edu-school">實務培訓與檢定</div>
                         <div class="edu-major">收銀帳務與SOP執行</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Certifications Section -->
+            <section>
+                <div class="section-header-yellow">證 照 / 證 書</div>
+                <div class="cert-grid">
+                    <div class="cert-card">
+                        <img src="https://api.accredible.com/v1/frontend/credential_website_embed_image/certificate/191071738" alt="高教教育家認證" style="max-width: 100%; height: auto; max-height: 80px; object-fit: contain; margin-bottom: 6px;" onerror="this.style.display='none';">
+                        <div class="cert-title">高教教育家認證</div>
+                        <div class="cert-sub">發照單位 / 年份</div>
+                    </div>
+                    <div class="cert-card">
+                        <img src="https://api.accredible.com/v1/frontend/credential_website_embed_image/certificate/191066017?key=46c467713b13818844dd6371f0e10ff1328e8314698cc00ddc05388f3a72ca72" alt="高教教職認證" style="max-width: 100%; height: auto; max-height: 80px; object-fit: contain; margin-bottom: 6px;" onerror="this.style.display='none';">
+                        <div class="cert-title">高教教職認證</div>
+                        <div class="cert-sub">發照單位 / 年份</div>
+                    </div>
+                    <div class="cert-card">
+                        <img src="https://api.accredible.com/v1/frontend/credential_website_embed_image/certificate/191055831" alt="高教學生認證" style="max-width: 100%; height: auto; max-height: 80px; object-fit: contain; margin-bottom: 6px;" onerror="this.style.display='none';">
+                        <div class="cert-title">高教學生認證</div>
+                        <div class="cert-sub">發照單位 / 年份</div>
+                    </div>
+                    <div class="cert-card">
+                        <svg class="cert-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-5.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                        </svg>
+                        <div class="cert-title">證照名稱 4</div>
+                        <div class="cert-sub">發照單位 / 年份</div>
+                    </div>
+                    <div class="cert-card">
+                        <svg class="cert-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-5.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                        </svg>
+                        <div class="cert-title">證照名稱 5</div>
+                        <div class="cert-sub">發照單位 / 年份</div>
+                    </div>
+                    <div class="cert-card">
+                        <svg class="cert-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-5.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                        </svg>
+                        <div class="cert-title">證照名稱 6</div>
+                        <div class="cert-sub">發照單位 / 年份</div>
                     </div>
                 </div>
             </section>
